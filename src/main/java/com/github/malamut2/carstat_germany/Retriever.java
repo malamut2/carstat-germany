@@ -1,16 +1,47 @@
 package com.github.malamut2.carstat_germany;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClient;
 
+import javax.annotation.PostConstruct;
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.LinkedHashMap;
 
 @Component
 public class Retriever {
 
+    private static final Logger logger = LoggerFactory.getLogger(Retriever.class);
+
     @Value("${kba.base-url:https://www.kba.de/SharedDocs/Publikationen/DE/Statistik/Fahrzeuge/FZ/}")
     protected String baseUrl;
+
+    @Value("${data.dir:data}")
+    protected String dataDirString;
+
+    @Value("${kba.request.timeoutMillis:20000}")
+    protected long kbaRetrieveTimeoutMillis;
+
+    protected File dataDir;
+
+    protected WebClient webclient;
+
+    @PostConstruct
+    protected void init() {
+        dataDir = new File(dataDirString);
+        if (!dataDir.isDirectory()) {
+            if (!dataDir.mkdirs()) {
+                throw new RuntimeException("data directory " + dataDir.getAbsolutePath()
+                        + " does not exist and cannot be created.");
+            }
+        }
+        webclient = WebClient.create(baseUrl);
+    }
 
     /**
      * Downloads all files of type FZ10 and FZ11 in the given time frame (inclusive).
@@ -35,19 +66,39 @@ public class Retriever {
 
     protected File download(KBADocumentType docType, String date, boolean refresh) {
 
-        if (!refresh) {
-            // !kgb check whether we already have both files. If yes -> return
-        }
-
         String year = date.substring(0, 4);
         String month = date.substring(4);
+        String localFz10Name = KBADocumentType.fz10.getLocalName(year, month);
+        String localFz11Name = KBADocumentType.fz11.getLocalName(year, month);
+        File localFz10 = new File(dataDir, localFz10Name);
+        File localFz11 = new File(dataDir, localFz11Name);
+        File localFile = docType == KBADocumentType.fz10 ? localFz10 : localFz11;
+
+        if (!refresh) {
+            if (localFz10.isFile() && localFz11.isFile()) {
+                return localFile;
+            }
+        }
+
         String remoteName = docType.getRemoteName(year, month);
-        String url = baseUrl + remoteName;
+        return download(localFile, remoteName);
 
-        // !kgb
+    }
 
-        return null;
-
+    // returns dst in case of success, null otherwise
+    private File download(File dst, String src) {
+        try {
+            byte[] contents = webclient.get().uri(src).retrieve().bodyToMono(byte[].class).block(Duration.ofMillis(kbaRetrieveTimeoutMillis));
+            if (contents == null) {
+                logger.warn("Could not download " + src + " from KBA website.");
+                return null;
+            }
+            Files.write(Paths.get(dst.getAbsolutePath()), contents);
+            return dst;
+        } catch (Exception e) {
+            logger.warn("Could not download " + src + " from KBA website", e);
+            return null;
+        }
     }
 
     public String monthBefore(String date) {

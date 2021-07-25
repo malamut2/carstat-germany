@@ -15,4 +15,10 @@ public enum KBADocumentType {
         return dir + prefix + extension + "?__blob=publicationFile";
     }
 
+    public String getLocalName(String year, String month) {
+        String date = year + month;
+        return name().toUpperCase(Locale.ROOT) + "-" + year + "-" + month
+                + ("201812".compareTo(date) < 0 ? ".xls" : ".xlsx");
+    }
+
 }
