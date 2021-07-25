@@ -10,15 +10,15 @@ public enum KBADocumentType {
         String date = year + month;
         String dir = year + "_monatlich/" + name().toUpperCase(Locale.ROOT) + "/";
         String prefix = name() + "_" + year + "_" + month;
-        String extension = "201812".compareTo(date) < 0 ? "_xls.xls"
-                : ("202101".compareTo(date) < 0 ? "_xlsx.xlsx" : ".xlsx");
+        String extension = "201812".compareTo(date) > 0 ? "_xls.xls"
+                : ("202101".compareTo(date) > 0 ? "_xlsx.xlsx" : ".xlsx");
         return dir + prefix + extension + "?__blob=publicationFile";
     }
 
     public String getLocalName(String year, String month) {
         String date = year + month;
         return name().toUpperCase(Locale.ROOT) + "-" + year + "-" + month
-                + ("201812".compareTo(date) < 0 ? ".xls" : ".xlsx");
+                + ("201812".compareTo(date) > 0 ? ".xls" : ".xlsx");
     }
 
 }
