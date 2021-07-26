@@ -103,6 +103,7 @@ public class Retriever {
                 return null;
             }
             Files.write(Paths.get(dst.getAbsolutePath()), contents);
+            logger.debug("Successfully downloaded File " + dst.getAbsolutePath() + "from " + baseUrl + src);
             return dst;
         } catch (Exception e) {
             logger.warn("Could not download " + src + " from KBA website", e);
