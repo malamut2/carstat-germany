@@ -13,7 +13,7 @@ class ScanAllFromKBA {
         for (String date = KBADocumentType.getNewestAvailableAdditionDate();
              isValidDate(date) && date.compareTo(KBADocumentType.getOldestAvailableAdditionDate()) >= 0;
              date = monthBefore(date)) {
-            scanner.parse(new File("data",
+            scanner.parse(date, new File("data",
                     KBADocumentType.fz10.getLocalName(date.substring(0, 4), date.substring(4))), null);
         }
 
