@@ -20,7 +20,8 @@ public class RetrieveAllFromKBA {
     public static void main(String[] args) {
         ConfigurableApplicationContext context = SpringApplication.run(RetrieveAllFromKBA.class, args);
         Retriever retriever = context.getBean(Retriever.class);
-        LinkedHashMap<String, File> map = retriever.downloadMonthlyAdditions("200901", "202106", false);
+        LinkedHashMap<String, File> map = retriever.downloadMonthlyAdditions(
+                "200901", KBADocumentType.getNewestAvailableAdditionDate(), false);
         logger.info("We have " + map.size() + " files available.");
         context.close();
         System.exit(0);

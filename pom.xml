@@ -30,6 +30,12 @@
         </dependency>
 
         <dependency>
+            <groupId>com.aldaviva.easter4j</groupId>
+            <artifactId>easter4j-calendar</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
             <scope>runtime</scope>
