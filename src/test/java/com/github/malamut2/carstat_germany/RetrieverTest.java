@@ -30,26 +30,4 @@ class RetrieverTest {
         );
     }
 
-    @Test
-    void monthBefore() {
-        assertEquals("202104", retriever.monthBefore("202105"));
-        assertEquals("202012", retriever.monthBefore("202101"));
-    }
-
-    @Test
-    void isValidDate() {
-
-        assertTrue(retriever.isValidDate("202105"));
-        assertTrue(retriever.isValidDate("100001"));
-        assertTrue(retriever.isValidDate("999912"));
-
-        assertFalse(retriever.isValidDate("999913"));
-        assertFalse(retriever.isValidDate("99991"));
-        assertFalse(retriever.isValidDate("9999111"));
-        assertFalse(retriever.isValidDate("10001"));
-        assertFalse(retriever.isValidDate("1000011"));
-        assertFalse(retriever.isValidDate("10001a"));
-
-    }
-
 }

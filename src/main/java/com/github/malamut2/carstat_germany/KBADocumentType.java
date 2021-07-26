@@ -30,6 +30,10 @@ public enum KBADocumentType {
                 + ("201812".compareTo(date) > 0 ? ".xls" : ".xlsx");
     }
 
+    public static String getOldestAvailableAdditionDate() {
+        return "200901";
+    }
+
     public static String getNewestAvailableAdditionDate() {
 
         Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));

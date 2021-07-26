@@ -14,6 +14,9 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.LinkedHashMap;
 
+import static com.github.malamut2.carstat_germany.DateUtils.isValidDate;
+import static com.github.malamut2.carstat_germany.DateUtils.monthBefore;
+
 @Component
 public class Retriever {
 
@@ -108,24 +111,6 @@ public class Retriever {
         } catch (Exception e) {
             logger.warn("Could not download " + src + " from KBA website", e);
             return null;
-        }
-    }
-
-    public String monthBefore(String date) {
-        int resultAsNum = Integer.parseInt(date) - 1;
-        if (resultAsNum % 100 == 0) {
-            resultAsNum -= 88;
-        }
-        return Integer.toString(resultAsNum);
-    }
-
-    public boolean isValidDate(String date) {
-        try {
-            int dateAsNum = Integer.parseInt(date);
-            int month = dateAsNum % 100;
-            return date.length() == 6 && month >= 1 && month <= 12 && dateAsNum > 0;
-        } catch (NumberFormatException ignored) {
-            return false;
         }
     }
 
