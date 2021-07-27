@@ -31,8 +31,8 @@ public class Scanner {
                 int nTotal = pos.getInt(sheet, total);
                 int nDiesel = pos.getInt(sheet, diesel);
                 int nBev = pos.getInt(sheet, bev);
-                int nPehv = pos.getInt(sheet, phev);
-                result.append(date, pos.maker, pos.model, nTotal, nDiesel, nBev, nPehv);
+                int nphev = pos.getInt(sheet, phev);
+                result.append(date, pos.maker, pos.model, nTotal, nDiesel, nBev, nphev);
             }
 
             // !kgb add FZ 11: car classes (as sum of models in class), commercial owners (as sum for model)
@@ -60,20 +60,23 @@ public class Scanner {
         return null;
     }
 
-    private static class ModelScanPos {
-
-        private String maker;
-        private String model;
-        private CellAddress position;
+    private record ModelScanPos(String maker, String model, int row) {
 
         public int getInt(Sheet sheet, CellAddress col) {
+            if (col == null)
+                return 0;
             try {
-                Cell cell = sheet.getRow(position.getRow()).getCell(col.getColumn());
-                return (int)cell.getNumericCellValue();
+                Cell cell = sheet.getRow(row).getCell(col.getColumn());
+                return switch(cell.getCellType()) {
+                    case NUMERIC -> ((int) cell.getNumericCellValue());
+                    case STRING -> Integer.parseInt(cell.getStringCellValue());
+                    default -> 0;
+                };
             } catch (NumberFormatException ignored) {
                 return 0;
             }
         }
+
     }
 
     private static class ModelIterable implements Iterable<ModelScanPos> {
@@ -85,9 +88,42 @@ public class Scanner {
         }
 
         private List<ModelScanPos> createList(Sheet sheet, CellAddress makers, CellAddress models) {
+
             List<ModelScanPos> result = new ArrayList<>();
-            // !kgb
+            int initialRow = makers.getRow();
+            if (initialRow != models.getRow()) {
+                throw new IllegalArgumentException("Conflict between makers and models row: " + initialRow + " vs " + models.getRow());
+            }
+            int makersCol = makers.getColumn();
+            int modelsCol = models.getColumn();
+            int lastRowNum = sheet.getLastRowNum();
+            String maker = null;
+
+            for (int rowNum = initialRow + 1; rowNum < lastRowNum; rowNum++) {
+
+                Row row = sheet.getRow(rowNum);
+                if (row == null) {
+                    continue;
+                }
+
+                Cell makerCell = row.getCell(makersCol, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
+                if (makerCell != null && makerCell.getCellType() == CellType.STRING) {
+                    maker = makerCell.getStringCellValue();
+                    if (maker.contains("ZUSAMMEN") || maker.contains("INSGESAMT")) {
+                        maker = null;
+                        continue;
+                    }
+                }
+
+                Cell modelCell = row.getCell(modelsCol, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
+                if (modelCell != null && modelCell.getCellType() == CellType.STRING) {
+                    String model = modelCell.getStringCellValue();
+                    result.add(new ModelScanPos(maker, model, rowNum));
+                }
+            }
+
             return result;
+
         }
 
         private List<ModelScanPos> createList(Sheet sheet, CellAddress makersAndModels) {
