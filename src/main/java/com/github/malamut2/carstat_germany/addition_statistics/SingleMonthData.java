@@ -49,4 +49,8 @@ public class SingleMonthData {
         }
     }
 
+    public SortedMap<String, SortedSet<Model>> getAllModels() {
+        return Collections.unmodifiableSortedMap(maker2models);
+    }
+
 }

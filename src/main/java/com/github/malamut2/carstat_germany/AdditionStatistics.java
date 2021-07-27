@@ -15,6 +15,18 @@ public class AdditionStatistics {
         data.append(maker, model, total, diesel, bev, phev);
     }
 
+    public SortedMap<String, SortedSet<Model>> getAllModels() {
+        SortedMap<String, SortedSet<Model>> result = new TreeMap<>();
+        for (SingleMonthData data : date2data.values()) {
+            SortedMap<String, SortedSet<Model>> newModels = data.getAllModels();
+            for (Map.Entry<String, SortedSet<Model>> entry : newModels.entrySet()) {
+                SortedSet<Model> currentModels = result.computeIfAbsent(entry.getKey(), x -> new TreeSet<>());
+                currentModels.addAll(entry.getValue());
+            }
+        }
+        return result;
+    }
+
     public SortedMap<String, DataPoint> getTimeSeriesByModel(String maker, String model) {
         SortedMap<String, DataPoint> result = new TreeMap<>();
         for (Map.Entry<String, SingleMonthData> entry : date2data.entrySet()) {
