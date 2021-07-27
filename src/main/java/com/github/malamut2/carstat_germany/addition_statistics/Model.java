@@ -4,6 +4,47 @@ import java.util.Objects;
 
 public record Model(String maker, String model) implements Comparable<Model> {
 
+    public Model(String maker, String model) {
+        this.maker = fixMaker(maker);
+        this.model = fixModel(this.maker, model);
+    }
+
+    private static String fixMaker(String maker) {
+        if (maker == null) {
+            return null;
+        }
+        if (maker.endsWith(" 1)")) {
+            return maker.substring(0, maker.length() - 3);
+        }
+        if ("MINI".equals(maker) || "BMW, MINI".equals(maker)) {
+            return "BMW";
+        }
+        return maker;
+    }
+
+    private static String fixModel(String maker, String model) {
+        if (model == null) {
+            return null;
+        }
+        if ("ALPINE".equals(maker)) {
+            return "";
+        }
+        if ("VW GOLF, JETTA".equals(model)) {
+            return "GOLF";
+        }
+        if ("ALPINA B 3".equals(model)) {
+            return "ALPINA B3";
+        }
+        if (model.startsWith("ALFA ")) {
+            return model.substring(5);
+        }
+        if (model.startsWith(maker + " ")) {
+            return model.substring(maker.length() + 1);
+        }
+        return model;
+    }
+
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

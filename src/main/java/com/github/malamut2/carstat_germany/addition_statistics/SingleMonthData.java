@@ -1,13 +1,8 @@
 package com.github.malamut2.carstat_germany.addition_statistics;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.*;
 
 public class SingleMonthData {
-
-    private static final Logger logger = LoggerFactory.getLogger(SingleMonthData.class);
 
     private final SortedMap<String, SortedSet<Model>> maker2models = new TreeMap<>();
     private final SortedMap<Model, DataPoint> models2data = new TreeMap<>();
@@ -19,11 +14,14 @@ public class SingleMonthData {
 
     public void append(String maker, String model, int total, int diesel, int bev, int phev) {
         Model m = new Model(maker, model);
-        SortedSet<Model> models = maker2models.computeIfAbsent(maker, a -> new TreeSet<>());
+        SortedSet<Model> models = maker2models.computeIfAbsent(m.maker(), a -> new TreeSet<>());
         models.add(m);
-        DataPoint oldDataPoint = models2data.put(m, new DataPoint(date, m, total, diesel, bev, phev));
+        DataPoint newData = new DataPoint(date, m, total, diesel, bev, phev);
+        DataPoint oldDataPoint = models2data.get(m);
         if (oldDataPoint != null) {
-            logger.warn("Duplicate entry for model " + model + " on " + date);
+            oldDataPoint.merge(oldDataPoint);
+        } else {
+            models2data.put(m, newData);
         }
     }
 

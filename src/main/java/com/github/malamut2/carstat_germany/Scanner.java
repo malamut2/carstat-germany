@@ -32,7 +32,7 @@ public class Scanner {
                 int nDiesel = pos.getInt(sheet, diesel);
                 int nBev = pos.getInt(sheet, bev);
                 int nPhev = pos.getInt(sheet, phev);
-                result.append(date, pos.maker, fixModel(pos.model), nTotal, nDiesel, nBev, nPhev);
+                result.append(date, pos.maker, pos.model, nTotal, nDiesel, nBev, nPhev);
             }
 
             // !kgb add FZ 11: car classes (as sum of models in class), commercial owners (as sum for model)
@@ -41,22 +41,6 @@ public class Scanner {
 
         }
 
-    }
-
-    private String fixModel(String model) {
-        if (model == null) {
-            return null;
-        }
-        if ("VW GOLF, JETTA".equals(model)) {
-            return "GOLF";
-        }
-        if (model.startsWith("VW ")) {
-            return model.substring(3);
-        }
-        if (model.startsWith("ALFA ")) {
-            return model.substring(5);
-        }
-        return model;
     }
 
     public CellAddress find(Sheet sheet, Predicate<String> f) {
@@ -103,6 +87,13 @@ public class Scanner {
             this.models = makers.equals(models) ? createList(sheet, makers) : createList(sheet, makers, models);
         }
 
+        private boolean isNoContentLine(String text) {
+            return text.contains("ZUSAMMEN")
+                    || text.contains("INSGESAMT")
+                    || text.contains("Revidierte")
+                    || "".equals(text);
+        }
+
         private List<ModelScanPos> createList(Sheet sheet, CellAddress makers, CellAddress models) {
 
             List<ModelScanPos> result = new ArrayList<>();
@@ -125,7 +116,7 @@ public class Scanner {
                 Cell makerCell = row.getCell(makersCol, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
                 if (makerCell != null && makerCell.getCellType() == CellType.STRING) {
                     maker = makerCell.getStringCellValue().trim();
-                    if (maker.contains("ZUSAMMEN") || maker.contains("INSGESAMT") || "".equals(maker)) {
+                    if (isNoContentLine(maker)) {
                         maker = null;
                         continue;
                     }
@@ -161,7 +152,7 @@ public class Scanner {
                 Cell textCell = row.getCell(textCol, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
                 if (textCell != null && textCell.getCellType() == CellType.STRING) {
                     String text = textCell.getStringCellValue().trim();
-                    if (text.contains("ZUSAMMEN") || text.contains("INSGESAMT") || "".equals(text)) {
+                    if (isNoContentLine(text)) {
                         maker = null;
                         continue;
                     }

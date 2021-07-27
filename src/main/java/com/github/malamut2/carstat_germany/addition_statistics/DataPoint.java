@@ -47,21 +47,10 @@ public class DataPoint {
             throw new IllegalArgumentException("Cannot merge data for dates " + date + " vs " + dataPoint.date
                     + " on " + model + " vs " + dataPoint.model);
         }
-        total = mergeField("total", total, dataPoint.total);
-        diesel = mergeField("diesel", diesel, dataPoint.diesel);
-        bev = mergeField("bev", total, dataPoint.bev);
-        phev = mergeField("phev", total, dataPoint.phev);
-    }
-
-    private int mergeField(String name, int oldValue, int newValue) {
-        if (oldValue == newValue || newValue == 0) {
-            return oldValue;
-        }
-        if (oldValue == 0) {
-            return newValue;
-        }
-        throw new IllegalArgumentException("Conflicting data for " + name + " on " + date + " and " + model
-                + ": old=" + oldValue + " vs new=" + newValue);
+        total += dataPoint.total;
+        diesel += dataPoint.diesel;
+        bev += dataPoint.bev;
+        phev += dataPoint.phev;
     }
 
 }
