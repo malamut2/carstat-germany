@@ -16,7 +16,7 @@ class ScanAllFromKBA {
     public static void main(String[] args) throws IOException {
 
         Scanner scanner = new Scanner();
-        AdditionStatistics statistics = new AdditionStatistics();
+        StatisticsNewRegistrations statistics = new StatisticsNewRegistrations();
 
         final String start = KBADocumentType.getNewestAvailableAdditionDate();
         final String stop = KBADocumentType.getOldestAvailableAdditionDate();
@@ -44,7 +44,7 @@ class ScanAllFromKBA {
         }
         System.out.println();
 
-        SortedMap<String, DataPoint> golfAdditions = statistics.getTimeSeriesByModel("VW", "GOLF");
+        SortedMap<String, DataPoint> golfAdditions = statistics.getTimeSeriesByModel("VW", "GOLF, JETTA");
         System.out.println("Time series for Volkswagen Golf additions to market in Germany:");
         for (Map.Entry<String, DataPoint> entry : golfAdditions.entrySet()) {
             System.out.println(entry.getKey() + ": " + entry.getValue());

@@ -12,9 +12,9 @@ import java.util.function.Predicate;
 
 public class Scanner {
 
-    public AdditionStatistics parse(String date, File fz10, File fz11) throws IOException {
+    public StatisticsNewRegistrations parse(String date, File fz10, File fz11) throws IOException {
 
-        AdditionStatistics result = new AdditionStatistics();
+        StatisticsNewRegistrations result = new StatisticsNewRegistrations();
 
         try (Workbook wb = WorkbookFactory.create(fz10, null, true)) {
 

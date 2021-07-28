@@ -6,7 +6,7 @@ import com.github.malamut2.carstat_germany.addition_statistics.SingleMonthData;
 
 import java.util.*;
 
-public class AdditionStatistics {
+public class StatisticsNewRegistrations {
 
     private final SortedMap<String, SingleMonthData> date2data = new TreeMap<>();
 
@@ -39,7 +39,7 @@ public class AdditionStatistics {
         return result;
     }
 
-    public void merge(AdditionStatistics data) {
+    public void merge(StatisticsNewRegistrations data) {
         for (Map.Entry<String, SingleMonthData> entry : data.date2data.entrySet()) {
             String date = entry.getKey();
             SingleMonthData smd = entry.getValue();

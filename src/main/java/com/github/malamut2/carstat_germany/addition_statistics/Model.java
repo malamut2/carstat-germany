@@ -26,20 +26,65 @@ public record Model(String maker, String model) implements Comparable<Model> {
         if (model == null) {
             return null;
         }
+        if ("".equals(model)) {
+            return "SONSTIGE";
+        }
+        if (model.startsWith(maker + " ")) {
+            model = model.substring(maker.length() + 1);
+        }
         if ("ALPINE".equals(maker)) {
             return "";
         }
-        if ("VW GOLF, JETTA".equals(model)) {
-            return "GOLF";
+        if ("AUDI".equals(maker)) {
+            if ("RS5".equals(model)) {
+                return "A5, S5, RS5";
+            }
+            return switch(model.substring(0, 2)) {
+                case "A1" -> "A1, S1";
+                case "A3" -> "A3, S3, RS3";
+                case "A4" -> "A4, S4, RS4";
+                case "A5" -> "A5, S5, RS5";
+                case "A6", "A7" -> "A6, S6, RS6, A7, S7, RS7";
+                default -> model;
+            };
+        }
+        if ("FIAT".equals(maker)) {
+            return switch (model) {
+                case "BRAVO" -> "BRAVO, BRAVA";
+                case "SCUDO" -> "ULYSSE, SCUDO";
+                default -> model;
+            };
+        }
+        if ("MERCEDES".equals(maker)) {
+            return switch (model) {
+                case "GLK" -> "GLK, GLC";
+                case "SLK" -> "SLK, SLC";
+                case "ML-KLASSE" -> "ML-KLASSE, GLE";
+                default -> model;
+            };
+        }
+        if ("MITSUBISHI".equals(maker)) {
+            return switch (model) {
+                case "MIRAGE" -> "MIRAGE, SPACE STAR";
+                case "PAJERO" -> "PAJERO, MONTERO";
+                default -> model;
+            };
+        }
+        if ("VW".equals(maker)) {
+            return switch (model) {
+                case "VW GOLF" -> "GOLF, JETTA";
+                case "TRANSPORTER" -> "TRANSPORTER, CARAVELLE";
+                default -> model;
+            };
+        }
+        if ("TRANSIT, TOURNEO".equals(model)) {
+            return "TRANSIT TOURNEO";
         }
         if ("ALPINA B 3".equals(model)) {
             return "ALPINA B3";
         }
         if (model.startsWith("ALFA ")) {
             return model.substring(5);
-        }
-        if (model.startsWith(maker + " ")) {
-            return model.substring(maker.length() + 1);
         }
         return model;
     }
@@ -65,7 +110,16 @@ public record Model(String maker, String model) implements Comparable<Model> {
 
     @Override
     public int compareTo(Model o) {
-        return toString().compareTo(o.toString());
+        int result = toString().compareTo(o.toString());
+        if (result != 0) {
+            if ("SONSTIGE".equals(model)) {
+                return 1;
+            }
+            if ("SONSTIGE".equals(o.model)) {
+                return -1;
+            }
+        }
+        return result;
     }
 
 }
