@@ -2,15 +2,17 @@ package com.github.malamut2.carstat_germany;
 
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellAddress;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.function.Predicate;
 
 public class Scanner {
+
+    private static final Logger logger = LoggerFactory.getLogger(Scanner.class);
 
     public StatisticsNewRegistrations parse(String date, File fz10, File fz11) throws IOException {
 
@@ -35,11 +37,40 @@ public class Scanner {
                 result.append(date, pos.maker, pos.model, nTotal, nDiesel, nBev, nPhev);
             }
 
-            // !kgb add FZ 11: car classes (as sum of models in class), commercial owners (as sum for model)
+        }
 
-            return result;
+        try (Workbook wb = WorkbookFactory.create(fz11, null, true)) {
+
+            int numSheets = wb.getNumberOfSheets();
+            Sheet sheet = wb.getSheetAt(numSheets - 1);
+            CellAddress segment = find(sheet, s -> s.trim().startsWith("Segment"));
+            CellAddress models = find(sheet, s -> {
+                String m = s.trim();
+                return m.endsWith("Modellreihe") || m.endsWith("Modellreihe 1)") || m.endsWith("Modellreihe 2)");
+            });
+            if (models == null) {
+                logger.warn("Modellreihe missing in FZ11 on " + date);
+                return result;
+            }
+            CellAddress total = find(sheet, s -> "Anzahl".equals(s.trim()));
+            CellAddress business = find(sheet, s -> s.trim().contains("gewerbl."));
+            Map<String, Map<String, Integer>> fz11data = new HashMap<>();
+
+            for (ModelScanPos pos : new ModelIterable(sheet, segment, models)) {
+                if (pos.maker == null) {
+                    continue;
+                }
+                int nTotal = pos.getInt(sheet, total);
+                double rBusiness = pos.getDouble(sheet, business);
+                int nBusiness = (int)Math.round(nTotal * rBusiness / 100d);
+                Map<String, Integer> members = fz11data.computeIfAbsent(pos.maker, a -> new HashMap<>());
+                members.put(pos.model, nBusiness);
+            }
+            result.mergeFZ11Data(date, fz11data);
 
         }
+
+        return result;
 
     }
 
@@ -70,6 +101,21 @@ public class Scanner {
                 return switch(cell.getCellType()) {
                     case NUMERIC -> ((int) cell.getNumericCellValue());
                     case STRING -> Integer.parseInt(cell.getStringCellValue().trim());
+                    default -> 0;
+                };
+            } catch (NumberFormatException ignored) {
+                return 0;
+            }
+        }
+
+        public double getDouble(Sheet sheet, CellAddress col) {
+            if (col == null)
+                return 0;
+            try {
+                Cell cell = sheet.getRow(row).getCell(col.getColumn());
+                return switch(cell.getCellType()) {
+                    case NUMERIC -> cell.getNumericCellValue();
+                    case STRING -> Double.parseDouble(cell.getStringCellValue().trim());
                     default -> 0;
                 };
             } catch (NumberFormatException ignored) {

@@ -15,6 +15,11 @@ public class StatisticsNewRegistrations {
         data.append(maker, model, total, diesel, bev, phev);
     }
 
+    public void mergeFZ11Data(String date, Map<String, Map<String, Integer>> fz11data) {
+        SingleMonthData data = date2data.computeIfAbsent(date, SingleMonthData::new);
+        data.mergeFZ11Data(fz11data);
+    }
+
     public SortedMap<String, SortedSet<Model>> getAllModels() {
         SortedMap<String, SortedSet<Model>> result = new TreeMap<>();
         for (SingleMonthData data : date2data.values()) {
