@@ -26,6 +26,11 @@ class ScanAllFromKBA {
             File fz11 = new File("data", KBADocumentType.fz11.getLocalName(date.substring(0, 4), date.substring(4)));
             statistics.merge(scanner.parse(date, fz10, fz11));
         }
+        statistics.saveToDisk(new File("data"));
+
+        StatisticsNewRegistrations statsFromDisk = StatisticsNewRegistrations.getFromDisk(new File("data"));
+        System.out.println("Data serialization successful: " + statsFromDisk.equals(statistics));
+        System.out.println();
 
         SortedMap<String, SortedSet<Model>> models = statistics.getAllModels();
         System.out.println("List of all makers and models we have data of:");

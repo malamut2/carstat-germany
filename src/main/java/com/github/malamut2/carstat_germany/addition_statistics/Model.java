@@ -1,8 +1,35 @@
 package com.github.malamut2.carstat_germany.addition_statistics;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.*;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
+import java.io.IOException;
 import java.util.Objects;
 
+@JsonDeserialize(keyUsing = Model.ModelKeyDeserializer.class)
 public record Model(String maker, String model) implements Comparable<Model> {
+
+    public static class ModelKeyDeserializer extends KeyDeserializer {
+        @Override
+        public Object deserializeKey(String s, DeserializationContext deserializationContext) {
+            String[] pair = s.split("\u001f");
+            if (pair.length == 1) {
+                pair = new String[]{pair[0], ""};
+            }
+            if (pair.length != 2) {
+                throw new IllegalArgumentException("Expected maker FS model, but found: " + s);
+            }
+            return new Model(pair[0], pair[1]);
+        }
+    }
+
+    public static class ModelKeySerializer extends JsonSerializer<Model> {
+        @Override
+        public void serialize(Model model, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
+            jsonGenerator.writeFieldName(model.maker + "\u001f" + model.model);
+        }
+    }
 
     public Model(String maker, String model) {
         this.maker = fixMaker(maker);
@@ -39,7 +66,7 @@ public record Model(String maker, String model) implements Comparable<Model> {
             if ("RS5".equals(model)) {
                 return "A5, S5, RS5";
             }
-            return switch(model.substring(0, 2)) {
+            return switch (model.substring(0, 2)) {
                 case "A1" -> "A1, S1";
                 case "A3" -> "A3, S3, RS3";
                 case "A4" -> "A4, S4, RS4";

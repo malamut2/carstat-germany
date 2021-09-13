@@ -1,14 +1,21 @@
 package com.github.malamut2.carstat_germany;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.github.malamut2.carstat_germany.addition_statistics.DataPoint;
 import com.github.malamut2.carstat_germany.addition_statistics.Model;
 import com.github.malamut2.carstat_germany.addition_statistics.SingleMonthData;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 public class StatisticsNewRegistrations {
 
-    private final SortedMap<String, SingleMonthData> date2data = new TreeMap<>();
+    @JsonProperty
+    SortedMap<String, SingleMonthData> date2data = new TreeMap<>();
 
     public void append(String date, String maker, String model, int total, int diesel, int bev, int phev) {
         SingleMonthData data = date2data.computeIfAbsent(date, SingleMonthData::new);
@@ -57,4 +64,29 @@ public class StatisticsNewRegistrations {
         }
     }
 
+    public void saveToDisk(File dir) throws IOException {
+        File fOut = new File(dir, "new-registrations.json");
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectWriter writer = mapper.writer().with(SerializationFeature.INDENT_OUTPUT);
+        writer.writeValue(fOut, this);
+    }
+
+    public static StatisticsNewRegistrations getFromDisk(File dir) throws IOException {
+        File fIn = new File(dir, "new-registrations.json");
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.reader().readValue(fIn, StatisticsNewRegistrations.class);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        StatisticsNewRegistrations that = (StatisticsNewRegistrations) o;
+        return date2data.equals(that.date2data);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(date2data);
+    }
 }

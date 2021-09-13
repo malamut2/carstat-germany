@@ -1,5 +1,8 @@
 package com.github.malamut2.carstat_germany.addition_statistics;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,10 +14,24 @@ public class SingleMonthData {
 
     private static final Set<String> fz11ModelMismatches = new HashSet<>();
 
-    private final SortedMap<String, SortedSet<Model>> maker2models = new TreeMap<>();
-    private final SortedMap<Model, DataPoint> models2data = new TreeMap<>();
-    private final SortedMap<String, SortedSet<Model>> segment2models = new TreeMap<>();
-    private final String date;
+    @JsonProperty
+    SortedMap<String, SortedSet<Model>> maker2models = new TreeMap<>();
+
+    @JsonProperty
+    @JsonSerialize(keyUsing = Model.ModelKeySerializer.class)
+    SortedMap<Model, DataPoint> models2data = new TreeMap<>();
+
+    @JsonProperty
+    SortedMap<String, SortedSet<Model>> segment2models = new TreeMap<>();
+
+    @JsonProperty
+    String date;
+
+    protected static boolean debug = false;
+
+    // Json constructor
+    SingleMonthData() {
+    }
 
     public SingleMonthData(String date) {
         this.date = date;
@@ -55,6 +72,7 @@ public class SingleMonthData {
         }
     }
 
+    @JsonIgnore
     public SortedMap<String, SortedSet<Model>> getAllModels() {
         return Collections.unmodifiableSortedMap(maker2models);
     }
@@ -76,7 +94,7 @@ public class SingleMonthData {
                 Model m = getModelFromRawName(rawModelName);
                 DataPoint dataPoint = m == null ? null : models2data.get(m);
                 if (dataPoint == null) {
-                    if (fz11ModelMismatches.add(rawModelName)) {
+                    if (fz11ModelMismatches.add(rawModelName) && debug) {
                         logger.warn("Could not match processed model to '" + rawModelName + "'");
                     }
                 } else {
@@ -111,4 +129,16 @@ public class SingleMonthData {
         return new Model(maker, model);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        SingleMonthData that = (SingleMonthData) o;
+        return maker2models.equals(that.maker2models) && models2data.equals(that.models2data) && segment2models.equals(that.segment2models) && date.equals(that.date);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(maker2models, models2data, segment2models, date);
+    }
 }
