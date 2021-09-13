@@ -53,14 +53,14 @@ public record Model(String maker, String model) implements Comparable<Model> {
         if (model == null) {
             return null;
         }
-        if ("".equals(model)) {
-            return "SONSTIGE";
-        }
         if (model.startsWith(maker + " ")) {
             model = model.substring(maker.length() + 1);
         }
         if ("ALPINE".equals(maker)) {
             return "";
+        }
+        if ("".equals(model)) {
+            return "SONSTIGE";
         }
         if ("AUDI".equals(maker)) {
             if ("RS5".equals(model)) {
@@ -137,7 +137,11 @@ public record Model(String maker, String model) implements Comparable<Model> {
 
     @Override
     public int compareTo(Model o) {
-        int result = toString().compareTo(o.toString());
+        int result = maker.compareTo(o.maker);
+        if (result != 0) {
+            return result;
+        }
+        result = model.compareTo((o.model));
         if (result != 0) {
             if ("SONSTIGE".equals(model)) {
                 return 1;
